@@ -9,12 +9,26 @@ bootf(data)
 \arguments{
 \item{data}{A univariate or multivariate time series.
 It might be vector, matrix or data frame to be passed
- to the \code{garmaFit2} function.?}
+ to the \code{garmaFit2} function.}
+}
+\value{
+A vector with the estimated Garma model parameters.
 }
 \description{
-This function returns the estimated parameters of a GARMA
+\code{\link{bootf}} returns the estimated parameters of a GARMA
 model and is used as an input (the \code{statistic}
-parameter) for the \code{\link[boot]{tsboot}} function in the \pkg{boot} package.
+parameter) for the \code{\link[boot]{tsboot}} function in
+the \pkg{boot} package.
+}
+\details{
+The \emph{GARMA} model is estimated with a modified
+version of the \code{\link[gamlss.util]{garmaFit}} function
+}
+\examples{
+data(example_HHJ)
+familia <- "PO"; ordem <- c(0,1)
+bootf(example_HHJ)
+
 }
 \author{
 Matheus de Vasconcellos Barroso
