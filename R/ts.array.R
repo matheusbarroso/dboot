@@ -4,7 +4,7 @@
 #'
 #'\code{ts.array} is an internal function called by
 #'\code{\link{tsboot2}}. It is a modified version of the
-#'\code{\link[boot]{ts.array}} function of \pkg(boot).
+#'\code{\link[boot]{ts.array}} function of \pkg{boot}.
 #'
 #'@author Matheus de Vasconcellos Barroso, \email{matheus.vb@gmail.com}
 #'
