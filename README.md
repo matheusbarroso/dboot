@@ -12,9 +12,6 @@ Inside **R** console just enter these two line commands:
 
 <<<<<<< HEAD
 Check function's help for examples...
-=======
-Check functions help for examples...
->>>>>>> 3d0e47b667518a25ee42344a0bd586453cb10040
 
 References: 
 
