@@ -4,9 +4,9 @@
 \alias{HHJ}
 \title{HHJ-MBB optimal block lenght selection algorithm}
 \usage{
-HHJ(data, statistic, R = 100, nsteps = 5L, type.est = "bias.variance",
+HHJ(data, statistic, R = 100L, nsteps = 5L, type.est = "bias.variance",
   type.optm = 0, allow.parallel = TRUE, errorhandling = "try",
-  n.try = 3, m.init = "default", type.sub.blocks = "fast", seed = 123,
+  n.try = 3L, m.init = "default", type.sub.blocks = "fast", seed = 123,
   export, ...)
 }
 \arguments{
