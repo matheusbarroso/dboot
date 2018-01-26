@@ -4,10 +4,10 @@
 \alias{tsboot2}
 \title{Internal \code{\link{LFL}} function.}
 \usage{
-tsboot2(tseries, statistic, R, l = NULL, sim = "fixed", endcorr = TRUE,
-  n.sim = NROW(tseries), orig.t = TRUE, ran.gen = function(tser, n.sim,
-  args) tser, ran.args = NULL, norm = TRUE, ..., parallel = c("no",
-  "multicore", "snow"), ncpus = getOption("boot.ncpus", 1L), cl = NULL)
+tsboot2(tseries, statistic, R = 100, l = NULL, n.sim = NROW(tseries),
+  ran.gen = function(tser, n.sim, args) tser, ran.args = NULL,
+  allow.parallel = TRUE, seed = 123, packages = NULL, export = NULL,
+  ...)
 }
 \arguments{
 \item{tseries}{A univariate or multivariate time series.}
@@ -28,13 +28,7 @@ bootstrap replicates required.}
 \item{l}{\code{l} is the fixed block length used in generating the replicate
 time series}
 
-\item{sim}{A character with the 'fixed' tag. (REMOVE the par.)}
-
-\item{endcorr}{\code{FALSE} (REMOVE the par.)}
-
-\item{n.sim}{The length of the simulated series. (REMOVE the par.)}
-
-\item{orig.t}{(REMOVE the par.)}
+\item{n.sim}{The length of the simulated series.}
 
 \item{ran.gen}{This is a function of three arguments. The first
 argument is a time series, it is the result of selecting
@@ -55,24 +49,32 @@ making \code{ran.args} a list. If \code{ran.args} is
 \code{ran.gen} but note that \code{ran.gen} must still
 have its third argument.}
 
-\item{norm}{Not used (REMOVE the par.)}
-
-\item{\dots}{Blocks to be returned.}
-
-\item{parallel}{Not used (REMOVE the par.)}
-
-\item{ncpus}{Not used (REMOVE the par.)}
-
-\item{cl}{Not used (REMOVE the par.)}
+\item{allow.parallel}{Logical TRUE/FALSE indicating
+whether parallel computation via the foreach package
+should be used. The default value is TRUE. OBS:paralllel
+ backend must be registered prior to calling
+ \code{\link{tsboot2}}.}
 
 \item{seed}{The used seed in the bootstrap replication.}
 
-\item{call}{The \code{\link{tsboot2}} call.}
+\item{packages}{If \code{allow.parallel = TRUE}.
+A character vector with the lisf of
+packages required by \code{statisitc}.}
+
+\item{export}{If \code{allow.parallel = TRUE}.
+A character vector with the lisf of
+objects (functions, etc...) required by \code{statisitc}.}
+
+\item{\dots}{Extra argumetns to \code{statistic} may be
+supplied here. Beware of partial matching to the
+arguments of \code{\link{tsboot2}} listed above.}
+
+\item{seed}{Numeric, the seed to \code{set.seed()} for
+replicable examples.}
 }
 \value{
-A list with the two elements:
-\item{starts }{The initial position of the resampled blocks}
-\item{lengths }{The length of the blocks in \code{starts}}
+An object of class "boot" with similar components
+as \code{\link[boot]{tsboot}}
 }
 \description{
 Generate R bootstrap replicates of a statistic applied
@@ -91,6 +93,22 @@ the \pkg{doParallel} package.
 \note{
 For bugs and further requests please refer to
 \url{https://github.com/matheusbarroso/dboot}
+}
+\examples{
+\dontrun{
+library(dboot)
+library(gamlss)
+library(doParallel)
+no_cores <- if(detectCores()==1) 1 else detectCores() -1
+registerDoParallel(no_cores)
+bootf <- function (db,ord,fam) {
+ fit2 <- garmaFit2(yt~x-1,data=db,order=ord,family=fam,tail=0,control=list(iter.max=1000))
+ return(fit2$coef)}
+ord <- c(1,1) ; fam="GA"
+db <- example_LFL
+tsboot2(db, statistic=bootf, R = 10, l = 100,ord=ord,fam=fam,export=c("garmaFit2"),package=c("gamlss"))
+}
+
 }
 \references{
 Angelo Canty and Brian Ripley (2017). boot: Bootstrap R

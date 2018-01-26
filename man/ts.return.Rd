@@ -4,12 +4,12 @@
 \alias{ts.return}
 \title{Internal \code{\link{tsboot2}} function.}
 \usage{
-ts.return(t0, t, R, tseries, seed, stat, sim, endcorr, n.sim, l, ran.gen,
-  ran.args, call, norm, blocks)
+ts.return(t0, t, R, tseries, seed, stat, n.sim, l, ran.gen, ran.args, call,
+  blocks)
 }
 \arguments{
 \item{t0}{\code{t0} is the result of
-\code{statistic(tseries,...{})}, as in \pkg(boot)}
+\code{statistic(tseries,...{})}, as in \pkg{boot}}
 
 \item{t}{The results of applying \code{statistic} to the
 replicate time series.}
@@ -23,10 +23,6 @@ bootstrap replicates required.}
 
 \item{stat}{\code{stat =  statistic}, as defined in
 \code{\link{tsboot2}}}
-
-\item{sim}{A character with the 'fixed' tag.}
-
-\item{endcorr}{\code{FALSE}}
 
 \item{n.sim}{The length of the simulated series.}
 
@@ -54,20 +50,18 @@ have its third argument.}
 
 \item{call}{The \code{\link{tsboot2}} call.}
 
-\item{norm}{Not used}
-
 \item{blocks}{Blocks to be returned.}
 }
 \value{
 A list with its arguments.
 }
 \description{
-Function to return the values \code{link{tsboot2}}
+Function to return the values \code{\link{tsboot2}}
 }
 \details{
 \code{ts.return} is an internal function called by
 \code{\link{tsboot2}}. It is a modified version of the
-\code{\link[boot]{ts.return}} function of \pkg(boot).
+\code{\link[boot]{ts.return}} function of \pkg{boot}.
 }
 \note{
 For bugs and further requests please refer to
