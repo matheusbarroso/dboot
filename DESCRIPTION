@@ -1,15 +1,17 @@
 Package: dboot
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Dependent Bootstrap package
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Matheus de Vasconcellos Barroso
+Maintainer: Matheus de Vasconcellos Barroso <matheus.vb@gmail.com>
+Description: This package builds on the boot package and implement new functions and plug-in algorithms 
+ in the case of the Moving Block Bootstrap.
+License: GNU General Public License, either Version 2, June 1991 or Version 3, June 2007.
 Encoding: UTF-8
-LazyData: true
 RoxygenNote: 6.0.1
+Depends: R(>= 3.4.0),boot(>= 1.3-19), doParallel(>= 1.0.10), doRNG(>= 1.6.6)
+Imports: gamlss(>= 5.0-2),gamlss.util(>= 4.3-4),gamlss.util(>= 4.3-4),gamlss.data(>= 5.0-0),gamlss.dist(>= 5.0-2)
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr
+LazyData: true
