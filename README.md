@@ -10,7 +10,7 @@ Inside **R** console just enter these two line commands:
 
 **install_github**("matheusbarroso/dboot") 
 
-<<<<<<< HEAD
+
 Check function's help for examples...
 
 References: 
