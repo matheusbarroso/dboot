@@ -32,12 +32,9 @@
 #'@param l \code{l} is the fixed block length used in generating the replicate
 #'time series
 #'
-#'
 #'@param n.sim The length of the simulated series.
-
 #'
 #'@param seed The used seed in the bootstrap replication.
-#'
 #'
 #'@param ran.gen This is a function of three arguments. The first
 #' argument is a time series, it is the result of selecting
