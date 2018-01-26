@@ -1,7 +1,5 @@
 #exportPattern("^[[:alpha:]]+")
 export(bootf)
-export(example_HHJ)
-export(example_LFL)
 export(garmaFit2)
 export(HHJ)
 export(LFL)
