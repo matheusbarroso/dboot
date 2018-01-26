@@ -1,6 +1,6 @@
 #'Internal \code{\link{tsboot2}} function.
 #'
-#'Function to return the values \code{\link{tsboot2}}
+#'Function to return the values \code{\link{tsboot2}}.
 #'
 #'\code{ts.return} is an internal function called by
 #'\code{\link{tsboot2}}. It is a modified version of the

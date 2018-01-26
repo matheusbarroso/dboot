@@ -23,20 +23,6 @@
 #' \item{starts }{The initial position of the resampled blocks}
 #' \item{lengths }{The length of the blocks in \code{starts}}
 #'
-#'@references
-#'
-#'Lahiri, S. N. 2002. ON THE JACKKNIFE-AFTER-BOOTSTRAP METHOD
-#' FOR DEPENDENT DATA AND ITS CONSISTENCY PROPERTIES.
-#' Econometric Theory. 18, 2002, pp. 79-98.
-#'
-#'Lahiri, Soumendra, Furukawa, Kyoji and Lee, Yd. 2007.
-#' A nonparametric plug-in rule for selecting optimal block
-#' lengths for block bootstrap methods. Statistical
-#' Methodology. July, 2007, Vol. 4, 3, pp. 292-321.
-#'
-#'Barroso, Matheus de V. 2018.  BOOTSTRAP METHODS FOR
-#'GENERALIZED AUTOREGRESSIVE MOVING AVERAGE MODELS
-#'
 #'@note For bugs and further requests please refer to
 #' \url{https://github.com/matheusbarroso/dboot}
 

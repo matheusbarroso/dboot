@@ -142,10 +142,9 @@ R <- floor(R)
 if((!is.numeric(R)||(R <=0)))
 	stop("'R' must be positive integer")
 
-
+nsteps <- floor(nsteps)
 if((!is.numeric(nsteps)||(nsteps <=0)))
 	stop("nsteps must be a positive integer")
-nsteps <- floor(nsteps)
 
 if (type.est%in% c("bias.variance","one.sided.distribution","two.sided.distribution") ) {
 	switch(type.est,"bias.variance"={k <- 1}
@@ -165,7 +164,7 @@ if(!is.logical(allow.parallel))
 
 if(allow.parallel)
 	if (foreach::getDoParRegistered()==FALSE)
-		stop("paralllel backend must be registered")
+		stop("parallel backend must be registered")
 
 if (!errorhandling%in% c("try","pass") )
 	stop("unrecognised value of 'errorhandling',accepted values are: 'try' and 'pass'")

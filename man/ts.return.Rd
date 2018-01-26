@@ -56,7 +56,7 @@ have its third argument.}
 A list with its arguments.
 }
 \description{
-Function to return the values \code{\link{tsboot2}}
+Function to return the values \code{\link{tsboot2}}.
 }
 \details{
 \code{ts.return} is an internal function called by

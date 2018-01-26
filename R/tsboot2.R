@@ -118,6 +118,12 @@ function (tseries, statistic, R=100, l = NULL, n.sim = NROW(tseries),
 	if(!is.numeric(seed))
 	stop('seed must be numeric')
 
+  if(!is.null(packages)&&!is.character(packages))
+    stop('packages must be a character vector')
+
+  if(!is.null(export)&&!is.character(export))
+    stop('packages must be a character vector')
+
 	statistic
     tscl <- class(tseries)
 	R <- floor(R)
