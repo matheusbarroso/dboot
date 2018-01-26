@@ -1,15 +1,15 @@
 #'Internal \code{\link{tsboot2}} function.
 #'
-#'Function to return the values \code{link{tsboot2}}
+#'Function to return the values \code{\link{tsboot2}}
 #'
 #'\code{ts.return} is an internal function called by
 #'\code{\link{tsboot2}}. It is a modified version of the
-#'\code{\link[boot]{ts.return}} function of \pkg(boot).
+#'\code{\link[boot]{ts.return}} function of \pkg{boot}.
 #'
 #'@author Matheus de Vasconcellos Barroso, \email{matheus.vb@gmail.com}
 #'
 #'@param t0 \code{t0} is the result of
-#' \code{statistic(tseries,...{})}, as in \pkg(boot)
+#' \code{statistic(tseries,...{})}, as in \pkg{boot}
 #'
 #'@param t The results of applying \code{statistic} to the
 #'replicate time series.
@@ -23,10 +23,6 @@
 #'
 #'@param stat \code{stat =  statistic}, as defined in
 #' \code{\link{tsboot2}}
-#'
-#'@param sim A character with the 'fixed' tag.
-#'
-#'@param endcorr \code{FALSE}
 #'
 #'@param n.sim The length of the simulated series.
 #'
@@ -54,8 +50,6 @@
 #'
 #'@param call The \code{\link{tsboot2}} call.
 #'
-#'@param norm Not used
-#'
 #'@param blocks Blocks to be returned.
 #'
 #'@return A list with its arguments.
@@ -67,18 +61,13 @@
 
 
 ts.return <-
-function (t0, t, R, tseries, seed, stat, sim, endcorr, n.sim, l, ran.gen, ran.args, call, norm,blocks) {
-    out <- list(t0 = t0, t = t, R = R, data = tseries, seed = seed,
-        statistic = stat, sim = sim, n.sim = n.sim, call = call,blocks=blocks)
-    if (sim == "scramble")
-        out <- c(out, list(norm = norm))
-    else if (sim == "model")
-        out <- c(out, list(ran.gen = ran.gen, ran.args = ran.args))
-    else {
-        out <- c(out, list(l = l, endcorr = endcorr))
+function (t0, t, R, tseries, seed, stat, n.sim, l, ran.gen, ran.args, call, blocks) {
+    out <- list(t0 = t0, t = t, R = R, data = tseries, seed = seed,sim='fixed',
+        statistic = stat,  n.sim = n.sim, call = call,blocks=blocks,l = l)
+
         if (!is.null(call$ran.gen))
             out <- c(out, list(ran.gen = ran.gen, ran.args = ran.args))
-    }
+
     class(out) <- "boot"
     out
 }

@@ -32,16 +32,12 @@
 #'@param l \code{l} is the fixed block length used in generating the replicate
 #'time series
 #'
-#'@param sim A character with the 'fixed' tag. (REMOVE the par.)
 #'
-#'@param endcorr \code{FALSE} (REMOVE the par.)
-#'
-#'@param n.sim The length of the simulated series. (REMOVE the par.)
+#'@param n.sim The length of the simulated series.
 
 #'
 #'@param seed The used seed in the bootstrap replication.
 #'
-#'@param orig.t (REMOVE the par.)
 #'
 #'@param ran.gen This is a function of three arguments. The first
 #' argument is a time series, it is the result of selecting
@@ -62,29 +58,43 @@
 #'\code{ran.gen} but note that \code{ran.gen} must still
 #'have its third argument.
 #'
-#'@param call The \code{\link{tsboot2}} call.
-#'
-#'@param norm Not used (REMOVE the par.)
-#'
-#'@param parallel Not used (REMOVE the par.)
-#'
-#'@param ncpus Not used (REMOVE the par.)
-#'
-#'@param cl Not used (REMOVE the par.)
-#'
-#'@allow.parallel Logical TRUE/FALSE indicating
+#'@param allow.parallel Logical TRUE/FALSE indicating
 #' whether parallel computation via the foreach package
 #' should be used. The default value is TRUE. OBS:paralllel
 #'  backend must be registered prior to calling
 #'  \code{\link{tsboot2}}.
 #'
-#'@param \dots Blocks to be returned.
+#'@param seed Numeric, the seed to \code{set.seed()} for
+#' replicable examples.
 #'
-
+#'@param packages If \code{allow.parallel = TRUE}.
+#' A character vector with the lisf of
+#'packages required by \code{statisitc}.
 #'
-#'@return A list with the two elements:
-#' \item{starts }{The initial position of the resampled blocks}
-#' \item{lengths }{The length of the blocks in \code{starts}}
+#'@param export If \code{allow.parallel = TRUE}.
+#' A character vector with the lisf of
+#'objects (functions, etc...) required by \code{statisitc}.
+#'
+#'@param \dots Extra argumetns to \code{statistic} may be
+#'supplied here. Beware of partial matching to the
+#'arguments of \code{\link{tsboot2}} listed above.
+#'
+#'@examples \dontrun{
+#'library(dboot)
+#'library(gamlss)
+#'library(doParallel)
+#'no_cores <- if(detectCores()==1) 1 else detectCores() -1
+#'registerDoParallel(no_cores)
+#'bootf <- function (db,ord,fam) {
+#'  fit2 <- garmaFit2(yt~x-1,data=db,order=ord,family=fam,tail=0,control=list(iter.max=1000))
+#'  return(fit2$coef)}
+#'ord <- c(1,1) ; fam="GA"
+#'db <- example_LFL
+#'tsboot2(db, statistic=bootf, R = 10, l = 100,ord=ord,fam=fam,export=c("garmaFit2"),package=c("gamlss"))
+#'}
+#'
+#'@return An object of class "boot" with similar components
+#'as \code{\link[boot]{tsboot}}
 #'
 #'@references
 #'
@@ -98,39 +108,26 @@
 #'@note For bugs and further requests please refer to
 #' \url{https://github.com/matheusbarroso/dboot}
 
-
-
 tsboot2 <-
-function (tseries, statistic, R, l = NULL, sim = "fixed", endcorr = TRUE,
-    n.sim = NROW(tseries), orig.t = TRUE, ran.gen = function(tser,
-        n.sim, args) tser, ran.args = NULL, norm = TRUE, ...,
-    parallel = c("no", "multicore", "snow"), ncpus = getOption("boot.ncpus",
-        1L), cl = NULL) {
-    if (missing(parallel))
-        parallel <- getOption("boot.parallel", "no")
-    parallel <- match.arg(parallel)
-    have_mc <- have_snow <- FALSE
-    if (parallel != "no" && ncpus > 1L) {
-        if (parallel == "multicore")
-            have_mc <- .Platform$OS.type != "windows"
-        else if (parallel == "snow")
-            have_snow <- TRUE
-        if (!have_mc && !have_snow)
-            ncpus <- 1L
-        loadNamespace("parallel")
-    }
-    statistic
+function (tseries, statistic, R=100, l = NULL, n.sim = NROW(tseries),
+		ran.gen = function(tser,n.sim, args) tser, ran.args = NULL,
+		allow.parallel=TRUE, seed=123,packages=NULL,export=NULL, ...) {
+
+	if(!is.logical(allow.parallel))
+        stop("allow.parallel must be logical (i.e.: TRUE/FALSE)")
+	if(allow.parallel)
+		if (foreach::getDoParRegistered()==FALSE)
+			stop("parallel backend must be registered")
+	if(!is.numeric(seed))
+	stop('seed must be numeric')
+
+	statistic
     tscl <- class(tseries)
-    R <- floor(R)
-    if (R <= 0)
-        stop("'R' must be positive")
+	R <- floor(R)
+    if((!is.numeric(R)||(R <=0)))
+		stop("'R' must be positive integer")
     call <- match.call()
-    if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
-        runif(1)
-    seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-    t0 <- if (orig.t)
-        statistic(tseries, ...)
-    else NULL
+    t0 <- statistic(tseries, ...)
     ts.orig <- if (!boot:::isMatrix(tseries))
         as.matrix(tseries)
     else tseries
@@ -140,8 +137,8 @@ function (tseries, statistic, R, l = NULL, sim = "fixed", endcorr = TRUE,
     class(ts.orig) <- tscl
     if ((is.null(l) || (l <= 0) || (l > n)))
         stop("invalid value of 'l'")
-i.a.2 <- list()
-    fn <- if (sim %in% c("fixed")) {
+
+    fn <-  {
         i.a <- ts.array(n, n.sim, R, l)
         ran.gen
         ran.args
@@ -152,34 +149,16 @@ i.a.2 <- list()
                 matrix(unlist(inds)[1L:n.sim], n.sim, 1L)
             else matrix(inds, n.sim, 1L)
             list(statistic=statistic(ran.gen(ts.orig[inds, ], n.sim, ran.args), ...),blocks=i.a)
+        }
+    }
 
-        }
-    }
-    else stop("unrecognized value of 'sim'")
-    res <- if (ncpus > 1L && (have_mc || have_snow)) {
-	stop("parallel computation not implemented, yet") ##não está implementado... tem que alterar o código.
-        if (have_mc) {
-            parallel::mclapply(seq_len(R), fn, mc.cores = ncpus)
-        }
-        else if (have_snow) {
-            list(...)
-            if (is.null(cl)) {
-                cl <- parallel::makePSOCKcluster(rep("localhost",
-                  ncpus))
-                if (RNGkind()[1L] == "L'Ecuyer-CMRG")
-                  parallel::clusterSetRNGStream(cl)
-                res <- parallel::parLapply(cl, seq_len(R), fn)
-                parallel::stopCluster(cl)
-                res
-            }
-            else parallel::parLapply(cl, seq_len(R), fn)
-        }
-    }
-    else lapply(seq_len(R), fn)
+	`%op%` <- if(allow.parallel==TRUE) `%dorng%` else `%do%`
+	set.seed(seed) # or .options.RNG=123; mudar para inherit
+	res <- foreach(i=seq_len(R),.packages=packages,.export=export)%op%fn(i)
     t <- matrix(, R, length(res[[1L]]$statistic))
     for (r in seq_len(R)) t[r, ] <- res[[r]]$statistic
     ts.return(t0 = t0, t = t, R = R, tseries = tseries, seed = seed,
-        stat = statistic, sim = sim, endcorr = endcorr, n.sim = n.sim,
+        stat = statistic, n.sim = n.sim,
         l = l, ran.gen = ran.gen, ran.args = ran.args, call = call,
-        norm = norm,blocks=res[[1L]]$blocks)
+        blocks=res[[1L]]$blocks)
 }
