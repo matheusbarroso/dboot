@@ -205,7 +205,7 @@ for(iteration in seq_len(nsteps)) {
 		block.l.m.sub <- c(sample(inf,1),if(!identical(dif,integer(0))) sample(dif,1),sample(sup,1))
 								}
 	print(block.l.m.sub)
-    cat(paste("Wait while the MBB resamples for the subsample are being computed;",type.sub.blocks,"computation enabled"))
+    cat(paste("Wait while the MBB resamples for the subsample are being computed;",type.sub.blocks,"computation enabled\n"))
 
 	fit.mbb <- {
 		foreach(l=block.l.m.sub,.packages=c("gamlss.util","boot"),.errorhandling=c('pass'),.export=export)%:%foreach(j=m.subsamples)%op%{
