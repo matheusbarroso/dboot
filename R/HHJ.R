@@ -245,6 +245,9 @@ for(iteration in seq_len(nsteps)) {
 	cat(paste("Chosen block lengths:",block.l.m.sub,"\n"))
     cat(paste("Wait while the MBB resamples for the subsample are being computed;",type.sub.blocks,"computation enabled\n"))
 
+	h <- function(w) if( any( grepl( "<anonymous>:...", w) ) ) invokeRestart( "muffleWarning" )
+
+	
 	fit.mbb <- { 
 		lapply(block.l.m.sub, function(l) {
 			lapply(m.subsamples, function(j){
@@ -254,18 +257,20 @@ for(iteration in seq_len(nsteps)) {
 					attempt <- 1
 					while( is.null(MBB) && attempt <= n.try ) {
 					attempt <- attempt + 1
-					try(MBB <- tsboot2(subset(data,seq_len(n)%in%j), statistic = statistic, 
+					try(MBB <- withCallingHandlers( tsboot2(subset(data,seq_len(n)%in%j), statistic = statistic, 
 										R = R, l = l,ran.gen = ran.gen,
 										ran.args = ran.args,allow.parallel = allow.parallel,
-										seed = seed + attempt -1, packages = packages, export = export,...)) #,ord=ord,fam=fam
+										seed = seed + attempt -1, packages = packages, export = export,...),
+										warning = h ) ) 
 															  }
 														   
 														   
 						}
-				,"pass"={MBB <- tsboot2(subset(data,seq_len(n)%in%j), statistic = statistic,
+				,"pass"={MBB <- withCallingHandlers( tsboot2(subset(data,seq_len(n)%in%j), statistic = statistic,
 										R = R, l = l,ran.gen = ran.gen,
 										ran.args = ran.args,allow.parallel = allow.parallel,
-										seed = seed, packages = packages, export = export,...)})#,ord=ord,fam=fam
+										seed = seed, packages = packages, export = export,...), 
+										warning = h )})
 
 			 list(MBB=MBB,seed=seed,subsamble=j,
 			 index=seq_len(length(m.subsamples))[unlist(lapply(m.subsamples, function(subsamp) all(subsamp==j)))])
