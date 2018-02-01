@@ -79,6 +79,25 @@
 #' statistic. For more details see the section
 #' \strong{"Details"} bellow.
 #'
+#'@param ran.gen This is a function of three arguments. The first
+#' argument is a time series, it is the result of selecting
+#' \code{n.sim} observations from \code{tseries} by some scheme
+#' and converting the result back into a time series of the
+#' same form as \code{tseries} (with length \code{n.sim}).
+#' The second argument to \code{ran.gen} is always the value
+#' \code{n.sim}, and the third argument is \code{ran.args},
+#' which is used to supply any other objects needed by
+#' \code{ran.gen}.
+#'
+#'@param ran.args This will be supplied to \code{ran.gen}
+#'each time it is called. If \code{ran.gen} needs any
+#'extra arguments then they should be supplied as components
+#'of \code{ran.args}. Multiple arguments may be passed by
+#'making \code{ran.args} a list. If \code{ran.args} is
+#'\code{NULL} then it should not be used within
+#'\code{ran.gen} but note that \code{ran.gen} must still
+#'have its third argument.
+#'
 #'@param allow.parallel Logical TRUE/FALSE indicating
 #' whether parallel computation via the foreach package
 #' should be used. The default value is TRUE. OBS:paralllel
@@ -107,11 +126,17 @@
 #'@param seed Numeric, the seed to \code{set.seed()} for
 #' replicable examples.
 #'
-#'@param export A character vector with the name of variables
-#' to export to the foreach loop.
+#'@param packages If \code{allow.parallel = TRUE}.
+#' A character vector with the lisf of
+#'packages required by \code{statisitc}.
 #'
-#'@param \dots Further argumetns to be passed to the
-#'\code{\link[boot]{tsboot}}  function.
+#'@param export If \code{allow.parallel = TRUE}.
+#' A character vector with the lisf of
+#'objects (functions, etc...) required by \code{statisitc}.
+#'
+#'@param \dots Extra argumetns to \code{statistic} may be
+#'supplied here. Beware of partial matching to the
+#'arguments of \code{\link{tsboot2}}.
 #'
 #'@return A dataframe, the first column for the iteration
 #'step and the second for the estimated optimal block length.
@@ -134,9 +159,13 @@
 
 
 HHJ <-
-function(data,statistic,R=100L,nsteps=5L,type.est="bias.variance",type.optm=0,
-		 allow.parallel=TRUE,errorhandling="try",n.try=3L,m.init="default",
-		 type.sub.blocks="fast",seed=123,export,...) {
+function(data, statistic, R = 100L, nsteps = 5L,
+		 type.est = "bias.variance", type.optm = 0,
+		 ran.gen = function(tser, n.sim, args) tser,
+		 ran.args = NULL,allow.parallel = TRUE,
+		 errorhandling = "try",n.try = 5L,
+		 m.init = "default",type.sub.blocks = "fast",
+		 seed = 123, packages = NULL,export=NULL,...) {
 
 R <- floor(R)
 if((!is.numeric(R)||(R <=0)))
@@ -172,7 +201,8 @@ if (!errorhandling%in% c("try","pass") )
 if((errorhandling=="try")&&(!is.numeric(n.try)||(n.try <=0)))
 	stop("n.try must be a positive integer")
 
-n <- if(is.vector(data)) length(data) else if(is.matrix(data)||is.data.frame(data)) nrow(data)
+n <- if(is.vector(data)) length(data) else 
+	if(is.matrix(data)||is.data.frame(data)) nrow(data)
 
 if(m.init!="default")
 	if(!(is.numeric(m.init)&&(m.init < n)&&(m.init > 0)))
@@ -184,14 +214,22 @@ if ( !type.sub.blocks%in% c("fast","complete") )
 if(!is.numeric(seed))
 	stop('seed must be numeric')
 
+if(!is.null(packages)&&!is.character(packages))
+	stop('packages must be a character vector')
 
-opt.l <- data.frame(iter=seq.int(from=0,to=nsteps),l.optm=c(if(m.init=="default")round(n^(1/3)) else round(m.init) ,rep(0,nsteps)))
+if(!is.null(export)&&!is.character(export))
+	stop('packages must be a character vector')	
 
-`%op%` <- if(allow.parallel==TRUE) `%dopar%` else `%do%`
+	
+opt.l <- data.frame(iter=seq.int(from=0,to=nsteps),l.optm=c(if(m.init=="default")round(n^(1/3)) else 
+	round(m.init) ,rep(0,nsteps)))
 
-set.seed(seed)
+#`%op%` <- if(allow.parallel==TRUE) `%dopar%` else `%do%`
 
-t0 <- statistic(data)
+#set.seed(seed)
+
+t0 <- statistic(data,...)
+#t0 <- statistic(data,ord=ord,fam=fam)
 
 for(iteration in seq_len(nsteps)) {
 
@@ -204,25 +242,37 @@ for(iteration in seq_len(nsteps)) {
 		dif <- setdiff(block.l.m.sub ,c(inf,sup))
 		block.l.m.sub <- c(sample(inf,1),if(!identical(dif,integer(0))) sample(dif,1),sample(sup,1))
 								}
-	print(block.l.m.sub)
+	cat(paste("Chosen block lengths:",block.l.m.sub,"\n"))
     cat(paste("Wait while the MBB resamples for the subsample are being computed;",type.sub.blocks,"computation enabled\n"))
 
-	fit.mbb <- {
-		foreach(l=block.l.m.sub,.packages=c("gamlss.util","boot"),.errorhandling=c('pass'),.export=export)%:%foreach(j=m.subsamples)%op%{
-		set.seed(seed)
-		switch(errorhandling
-			,"try"= {
-				MBB <- NULL
-				attempt <- 1
-				while( is.null(MBB) && attempt <= n.try ) {
-				attempt <- attempt + 1
-				try(MBB <- tsboot(subset(data,seq_len(n)%in%j), statistic=statistic, R = R, l = l, sim = 'fixed',...))
-														   }
-					}
-			,"pass"={MBB <- tsboot(subset(data,seq_len(n)%in%j), statistic=statistic, R = R, l = l, sim = 'fixed',...)})
+	fit.mbb <- { 
+		lapply(block.l.m.sub, function(l) {
+			lapply(m.subsamples, function(j){
+			switch(errorhandling
+				,"try"= {
+					MBB <- NULL
+					attempt <- 1
+					while( is.null(MBB) && attempt <= n.try ) {
+					attempt <- attempt + 1
+					try(MBB <- tsboot2(subset(data,seq_len(n)%in%j), statistic = statistic, 
+										R = R, l = l,ran.gen = ran.gen,
+										ran.args = ran.args,allow.parallel = allow.parallel,
+										seed = seed + attempt -1, packages = packages, export = export,...)) #,ord=ord,fam=fam
+															  }
+														   
+														   
+						}
+				,"pass"={MBB <- tsboot2(subset(data,seq_len(n)%in%j), statistic = statistic,
+										R = R, l = l,ran.gen = ran.gen,
+										ran.args = ran.args,allow.parallel = allow.parallel,
+										seed = seed, packages = packages, export = export,...)})#,ord=ord,fam=fam
 
-		list(MBB=MBB,seed=seed,subsamble=j,
-		index=seq_len(length(m.subsamples))[unlist(lapply(m.subsamples, function(subsamp) all(subsamp==j)))])                                 }
+			 list(MBB=MBB,seed=seed,subsamble=j,
+			 index=seq_len(length(m.subsamples))[unlist(lapply(m.subsamples, function(subsamp) all(subsamp==j)))])
+			
+												})
+											})
+			
 				}
 
 	check01 <- lapply(seq_len(length(block.l.m.sub)), function(k)setdiff(seq_len(length(m.subsamples)),sapply(fit.mbb[[k]],function(j) j$index)) )
@@ -247,7 +297,7 @@ for(iteration in seq_len(nsteps)) {
 
 	opt.l$l.optm[iteration+1] <- round((n/length(block.l.m.sub))^(1/3)*l.m)
 
-	cat(paste("Step:",iteration, "completed, more", nsteps-iteration,"to go"))
+	cat(paste("Step:",iteration, "completed, more", nsteps-iteration,"to go\n"))
 }
 return(opt.l)
 }
