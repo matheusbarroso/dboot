@@ -83,7 +83,7 @@ objects (functions, etc...) required by \code{statisitc}.}
 
 \item{\dots}{Extra argumetns to \code{statistic} may be
 supplied here. Beware of partial matching to the
-arguments of \code{\link{tsboot2}} listed above.}
+arguments of \code{\link{tsboot2}}.}
 }
 \value{
 A dataframe, the first column for the iteration

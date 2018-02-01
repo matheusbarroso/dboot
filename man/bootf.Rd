@@ -4,7 +4,7 @@
 \alias{bootf}
 \title{Garma statistic for tsboot}
 \usage{
-bootf(data)
+bootf(data, ord, fam)
 }
 \arguments{
 \item{data}{A univariate or multivariate time series.
@@ -25,9 +25,9 @@ The \emph{GARMA} model is estimated with a modified
 version of the \code{\link[gamlss.util]{garmaFit}} function
 }
 \examples{
-data(example_HHJ)
-familia <- "PO"; ordem <- c(0,1)
-bootf(example_HHJ)
+example_HHJ
+fam <- "PO"; ord <- c(0,1)
+bootf(example_HHJ,ord,fam)
 
 }
 \author{
