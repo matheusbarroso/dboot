@@ -22,32 +22,38 @@
 #'
 #'@author Matheus de Vasconcellos Barroso
 #'
-#'@examples \dontrun{library(dboot)
-#'data(exampleHHJ,package='dboot') # this is a realization of Poisson-Garma model.
-#' familia <- "PO"
-#' ordem <- c(0,1)
+#'@examples \dontrun{
 #'library(gamlss)
-#'library(boot)
-#'
-#'bootf <- function (db) {
-#'  fit2 <- garmaFit2(yt~x-1,data=db,order=ordem,family=familia,tail=0,control=list(iter.max=1000))
-#'  return(fit2$coef)}
+#'library(dboot)
+#'db <- example_HHJ
+#'fam <- "PO"
+#'ord <- c(0,1)
 #'
 #'library(doParallel)
 #'no_cores <- if(detectCores()==1) 1 else detectCores() -1
 #'registerDoParallel(no_cores)
 #'
-#'HHJ(db,bootf,errorhandling="try",nsteps=1,export=c("garmaFit2","familia","ordem"))
+#'HHJ(db,bootf,R = 10,nsteps=1,ord=ord,fam=fam,
+#'export=c("garmaFit2"), packages=c("gamlss"))
 #'
-#'HHJ(db,bootf,errorhandling="try",nsteps=2,export=c("garmaFit2","familia","ordem"),n.try=5)
+#'HHJ(db,bootf,R = 10, errorhandling="pass",ord=ord,seed=124
+#'fam=fam,export=c("garmaFit2"),  packages=c("gamlss"),n.try=3)
 #'
-#'HHJ(db,bootf,errorhandling="try",nsteps=2,export=c("garmaFit2","familia","ordem"),type.optm=2)
+#'HHJ(db,bootf,R = 10,nsteps=2,ord=ord,fam=fam,
+#'export=c("garmaFit2"),  packages=c("gamlss"),n.try=2)
 #'
-#'HHJ(db,bootf,errorhandling="try",nsteps=3,export=c("garmaFit2","familia","ordem"),m.init=6)
+#'HHJ(db,bootf,R = 10,nsteps=1,ord=ord,fam=fam,
+#'export=c("garmaFit2"), packages=c("gamlss"),type.sub.blocks="complete")
 #'
-#'HHJ(db,bootf,errorhandling="try",nsteps=1,export=c("garmaFit2","familia","ordem"),m.init=6,allow.parallel=FALSE)}
+#'HHJ(db,bootf,R = 10,nsteps=2,ord=ord,fam=fam,
+#'export=c("garmaFit2"),  packages=c("gamlss"),type.optm=2)
 #'
-
+#'HHJ(db,bootf,R = 10,nsteps=3,ord=ord,fam=fam,
+#'export=c("garmaFit2"), packages=c("gamlss"),m.init=6)
+#'
+#'HHJ(db,bootf,R = 10,nsteps=1,ord=ord,fam=fam,
+#'export=c("garmaFit2"), packages=c("gamlss"),m.init=6,allow.parallel=FALSE)
+#'
 #'@param data A univariate or multivariate time series.
 #'It might be vector, matrix or data frame to be passed to
 #'statistic.
@@ -224,12 +230,9 @@ if(!is.null(export)&&!is.character(export))
 opt.l <- data.frame(iter=seq.int(from=0,to=nsteps),l.optm=c(if(m.init=="default")round(n^(1/3)) else 
 	round(m.init) ,rep(0,nsteps)))
 
-#`%op%` <- if(allow.parallel==TRUE) `%dopar%` else `%do%`
 
-#set.seed(seed)
-
+set.seed(seed)
 t0 <- statistic(data,...)
-#t0 <- statistic(data,ord=ord,fam=fam)
 
 for(iteration in seq_len(nsteps)) {
 
@@ -241,6 +244,7 @@ for(iteration in seq_len(nsteps)) {
 		sup <- seq.int(quantile(block.l.m.sub,2/3,type=1),m)
 		dif <- setdiff(block.l.m.sub ,c(inf,sup))
 		block.l.m.sub <- c(sample(inf,1),if(!identical(dif,integer(0))) sample(dif,1),sample(sup,1))
+		block.l.m.sub <- unique(block.l.m.sub)
 								}
 	cat(paste("Chosen block lengths:",block.l.m.sub,"\n"))
     cat(paste("Wait while the MBB resamples for the subsample are being computed;",type.sub.blocks,"computation enabled\n"))
@@ -260,7 +264,7 @@ for(iteration in seq_len(nsteps)) {
 					try(MBB <- withCallingHandlers( tsboot2(subset(data,seq_len(n)%in%j), statistic = statistic, 
 										R = R, l = l,ran.gen = ran.gen,
 										ran.args = ran.args,allow.parallel = allow.parallel,
-										seed = seed + attempt -1, packages = packages, export = export,...),
+										seed = seed + attempt -1, packages = packages, export = export,...), 
 										warning = h ) ) 
 															  }
 														   
@@ -289,12 +293,15 @@ for(iteration in seq_len(nsteps)) {
 	paste(sapply(check,unlist)[[j]],collapse=",")," have failed in step",iteration,";\n" ,sep="")))
 
 	index1 <- block.l.m.sub[sapply(fit.mbb,length)!=0] ## for a given block length there might be a failure of the MBB
-
+	index2 <- block.l.m.sub[!sapply(fit.mbb,is.null)]
+	index1 <- seq_len(length(block.l.m.sub))[block.l.m.sub%in%intersect(index1,index2)]
+	
+	
 	sqe <- lapply(index1, function(k) {
 	sqe <- sapply(seq_len(length(fit.mbb[[k]]))[setdiff(seq_len(length(fit.mbb[[k]])),unlist(check[[k]]))], function(j) {
 	tn <- apply(fit.mbb[[k]][[j]]$MBB$t,2,mean)
 	(t0-tn)^2})})
-
+	
 	(msqe <- lapply(sqe,function(j) {apply(j,1,mean)}))
 
 	indice.best <- sapply(seq_len(length(msqe)), function(j) {mean(msqe[[j]][if(type.optm==0) TRUE else type.optm ])})
