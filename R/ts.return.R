@@ -69,5 +69,6 @@ function (t0, t, R, tseries, seed, stat, n.sim, l, ran.gen, ran.args, call, bloc
             out <- c(out, list(ran.gen = ran.gen, ran.args = ran.args))
 
     class(out) <- "boot"
+    attr(out, "boot_type") <- "tsboot"
     out
 }
