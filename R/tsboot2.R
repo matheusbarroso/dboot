@@ -107,16 +107,22 @@
 
 tsboot2 <-
 function (tseries, statistic, R=100, l = NULL, n.sim = NROW(tseries),
-		ran.gen = function(tser,n.sim, args) tser, ran.args = NULL,
-		allow.parallel=TRUE, seed=123,packages=NULL,export=NULL, ...) {
+		      ran.gen = function(tser,n.sim, args) tser, ran.args = NULL,
+		      allow.parallel=TRUE, seed=123,packages=NULL,export=NULL, ...) {
 
-	if(!is.logical(allow.parallel))
-        stop("allow.parallel must be logical (i.e.: TRUE/FALSE)")
-	if(allow.parallel)
+  R <- floor(R)
+  if((!is.numeric(R)||(R <=0)))
+    stop("'R' must be positive integer")
+  
+  if(!is.logical(allow.parallel))
+    stop("allow.parallel must be logical (i.e.: TRUE/FALSE)")
+	
+  if(allow.parallel)
 		if (foreach::getDoParRegistered()==FALSE)
 			stop("parallel backend must be registered")
-	if(!is.numeric(seed))
-	stop('seed must be numeric')
+	
+  if(!is.numeric(seed))
+	  stop('seed must be numeric')
 
   if(!is.null(packages)&&!is.character(packages))
     stop('packages must be a character vector')
@@ -125,19 +131,21 @@ function (tseries, statistic, R=100, l = NULL, n.sim = NROW(tseries),
     stop('packages must be a character vector')
 
 	statistic
-    tscl <- class(tseries)
-	R <- floor(R)
-    if((!is.numeric(R)||(R <=0)))
-		stop("'R' must be positive integer")
-    call <- match.call()
-    t0 <- statistic(tseries, ...)
-    ts.orig <- if (!boot:::isMatrix(tseries))
-        as.matrix(tseries)
-    else tseries
-    n <- nrow(ts.orig)
-    if (missing(n.sim))
-        n.sim <- n
-    class(ts.orig) <- tscl
+  tscl <- class(tseries)
+	call <- match.call()
+  t0 <- statistic(tseries, ...)
+  
+  ts.orig <- if (!boot:::isMatrix(tseries))
+    as.matrix(tseries)
+      else tseries
+  
+  n <- nrow(ts.orig)
+  
+  if (missing(n.sim))
+    n.sim <- n
+  
+  class(ts.orig) <- tscl
+  
     if ((is.null(l) || (l <= 0) || (l > n)))
         stop("invalid value of 'l'")
 
