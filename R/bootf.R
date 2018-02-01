@@ -11,9 +11,9 @@
 #'@author Matheus de Vasconcellos Barroso
 #'
 #'@examples
-#'data(example_HHJ)
-#'familia <- "PO"; ordem <- c(0,1)
-#'bootf(example_HHJ)
+#'example_HHJ
+#'fam <- "PO"; ord <- c(0,1)
+#'bootf(example_HHJ,ord,fam)
 #'
 #'@param data A univariate or multivariate time series.
 #' It might be vector, matrix or data frame to be passed
@@ -23,6 +23,6 @@
 
 
 bootf <-
-function (data) {
-fit2 <- garmaFit2(yt~x-1,data=data,order=ordem,family=familia,tail=0,control=list(iter.max=1000))
+function (data,ord,fam) {
+fit2 <- garmaFit2(yt~x-1,data=data,order=ord,family=fam,tail=0,control=list(iter.max=1000))
 return(fit2$coef)}
