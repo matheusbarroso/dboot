@@ -5,9 +5,10 @@
 \title{HHJ-MBB optimal block lenght selection algorithm}
 \usage{
 HHJ(data, statistic, R = 100L, nsteps = 5L, type.est = "bias.variance",
-  type.optm = 0, allow.parallel = TRUE, errorhandling = "try",
-  n.try = 3L, m.init = "default", type.sub.blocks = "fast", seed = 123,
-  export, ...)
+  type.optm = 0, ran.gen = function(tser, n.sim, args) tser,
+  ran.args = NULL, allow.parallel = TRUE, errorhandling = "try",
+  n.try = 5L, m.init = "default", type.sub.blocks = "fast", seed = 123,
+  packages = NULL, export = NULL, ...)
 }
 \arguments{
 \item{data}{A univariate or multivariate time series.
@@ -41,6 +42,25 @@ parameter to optimize in the same order as provided by
 statistic. For more details see the section
 \strong{"Details"} bellow.}
 
+\item{ran.gen}{This is a function of three arguments. The first
+argument is a time series, it is the result of selecting
+\code{n.sim} observations from \code{tseries} by some scheme
+and converting the result back into a time series of the
+same form as \code{tseries} (with length \code{n.sim}).
+The second argument to \code{ran.gen} is always the value
+\code{n.sim}, and the third argument is \code{ran.args},
+which is used to supply any other objects needed by
+\code{ran.gen}.}
+
+\item{ran.args}{This will be supplied to \code{ran.gen}
+each time it is called. If \code{ran.gen} needs any
+extra arguments then they should be supplied as components
+of \code{ran.args}. Multiple arguments may be passed by
+making \code{ran.args} a list. If \code{ran.args} is
+\code{NULL} then it should not be used within
+\code{ran.gen} but note that \code{ran.gen} must still
+have its third argument.}
+
 \item{allow.parallel}{Logical TRUE/FALSE indicating
 whether parallel computation via the foreach package
 should be used. The default value is TRUE. OBS:paralllel
@@ -69,11 +89,17 @@ and 'complete', the former implements a sampling scheme
 \item{seed}{Numeric, the seed to \code{set.seed()} for
 replicable examples.}
 
-\item{export}{A character vector with the name of variables
-to export to the foreach loop.}
+\item{packages}{If \code{allow.parallel = TRUE}.
+A character vector with the lisf of
+packages required by \code{statisitc}.}
 
-\item{\dots}{Further argumetns to be passed to the
-\code{\link[boot]{tsboot}}  function.}
+\item{export}{If \code{allow.parallel = TRUE}.
+A character vector with the lisf of
+objects (functions, etc...) required by \code{statisitc}.}
+
+\item{\dots}{Extra argumetns to \code{statistic} may be
+supplied here. Beware of partial matching to the
+arguments of \code{\link{tsboot2}}.}
 }
 \value{
 A dataframe, the first column for the iteration
@@ -104,33 +130,6 @@ the \code{\link[boot]{tsboot}} function from the
 \note{
 For bugs and further requests please refer
 to \url{https://github.com/matheusbarroso/dboot}
-}
-\examples{
-\dontrun{library(dboot)
-data(exampleHHJ,package='dboot') # this is a realization of Poisson-Garma model.
-familia <- "PO"
-ordem <- c(0,1)
-library(gamlss)
-library(boot)
-
-bootf <- function (db) {
- fit2 <- garmaFit2(yt~x-1,data=db,order=ordem,family=familia,tail=0,control=list(iter.max=1000))
- return(fit2$coef)}
-
-library(doParallel)
-no_cores <- if(detectCores()==1) 1 else detectCores() -1
-registerDoParallel(no_cores)
-
-HHJ(db,bootf,errorhandling="try",nsteps=1,export=c("garmaFit2","familia","ordem"))
-
-HHJ(db,bootf,errorhandling="try",nsteps=2,export=c("garmaFit2","familia","ordem"),n.try=5)
-
-HHJ(db,bootf,errorhandling="try",nsteps=2,export=c("garmaFit2","familia","ordem"),type.optm=2)
-
-HHJ(db,bootf,errorhandling="try",nsteps=3,export=c("garmaFit2","familia","ordem"),m.init=6)
-
-HHJ(db,bootf,errorhandling="try",nsteps=1,export=c("garmaFit2","familia","ordem"),m.init=6,allow.parallel=FALSE)}
-
 }
 \references{
 Kunsch, Hans R. 1989. The Jakknife and the
