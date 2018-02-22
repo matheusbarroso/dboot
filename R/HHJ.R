@@ -22,38 +22,6 @@
 #'
 #'@author Matheus de Vasconcellos Barroso
 #'
-#'@examples \dontrun{
-#'library(gamlss)
-#'library(dboot)
-#'db <- example_HHJ
-#'fam <- "PO"
-#'ord <- c(0,1)
-#'
-#'library(doParallel)
-#'no_cores <- if(detectCores()==1) 1 else detectCores() -1
-#'registerDoParallel(no_cores)
-#'
-#'HHJ(db,bootf,R = 10,nsteps=1,ord=ord,fam=fam,
-#'export=c("garmaFit2"), packages=c("gamlss"))
-#'
-#'HHJ(db,bootf,R = 10, errorhandling="pass",ord=ord,seed=124
-#'fam=fam,export=c("garmaFit2"),  packages=c("gamlss"),n.try=3)
-#'
-#'HHJ(db,bootf,R = 10,nsteps=2,ord=ord,fam=fam,
-#'export=c("garmaFit2"),  packages=c("gamlss"),n.try=2)
-#'
-#'HHJ(db,bootf,R = 10,nsteps=1,ord=ord,fam=fam,
-#'export=c("garmaFit2"), packages=c("gamlss"),type.sub.blocks="complete")
-#'
-#'HHJ(db,bootf,R = 10,nsteps=2,ord=ord,fam=fam,
-#'export=c("garmaFit2"),  packages=c("gamlss"),type.optm=2)
-#'
-#'HHJ(db,bootf,R = 10,nsteps=3,ord=ord,fam=fam,
-#'export=c("garmaFit2"), packages=c("gamlss"),m.init=6)
-#'
-#'HHJ(db,bootf,R = 10,nsteps=1,ord=ord,fam=fam,
-#'export=c("garmaFit2"), packages=c("gamlss"),m.init=6,allow.parallel=FALSE)
-#'
 #'@param data A univariate or multivariate time series.
 #'It might be vector, matrix or data frame to be passed to
 #'statistic.
@@ -76,7 +44,7 @@
 #'@param type.est A character describing the type of
 #'estimation being undertaken. Accepted values are:
 #''bias.variance', 'one.sided.distribution' and
-#' 'two.sided.distribution. The default value is
+#' 'two.sided.distribution'. The default value is
 #'  'bias.variance'.
 #'
 #'@param type.optm 0 for mean of the parameters vector
@@ -159,6 +127,40 @@
 #'
 #'@note For bugs and further requests please refer
 #' to \url{https://github.com/matheusbarroso/dboot}
+#' 
+#'@examples \dontrun{
+#'library(gamlss)
+#'library(dboot)
+#'db <- example_HHJ
+#'fam <- "PO"
+#'ord <- c(0,1)
+#'
+#'library(doParallel)
+#'no_cores <- if(detectCores()==1) 1 else detectCores() -1
+#'registerDoParallel(no_cores)
+#'
+#'HHJ(db,bootf,R = 10,nsteps=1,ord=ord,fam=fam,
+#'export=c("garmaFit2"), packages=c("gamlss"))
+#'
+#'HHJ(db,bootf,R = 10, errorhandling="pass",ord=ord,seed=124
+#'fam=fam,export=c("garmaFit2"),  packages=c("gamlss"),n.try=3)
+#'
+#'HHJ(db,bootf,R = 10,nsteps=2,ord=ord,fam=fam,
+#'export=c("garmaFit2"),  packages=c("gamlss"),n.try=2)
+#'
+#'HHJ(db,bootf,R = 10,nsteps=1,ord=ord,fam=fam,
+#'export=c("garmaFit2"), packages=c("gamlss"),type.sub.blocks="complete")
+#'
+#'HHJ(db,bootf,R = 10,nsteps=2,ord=ord,fam=fam,
+#'export=c("garmaFit2"),  packages=c("gamlss"),type.optm=2)
+#'
+#'HHJ(db,bootf,R = 10,nsteps=3,ord=ord,fam=fam,
+#'export=c("garmaFit2"), packages=c("gamlss"),m.init=6)
+#'
+#'HHJ(db,bootf,R = 10,nsteps=1,ord=ord,fam=fam,
+#'export=c("garmaFit2"), packages=c("gamlss"),m.init=6,allow.parallel=FALSE)
+#'}
+
 
 
 
@@ -175,7 +177,7 @@ function(data, statistic, R = 100L, nsteps = 5L,
 
 R <- floor(R)
 if((!is.numeric(R)||(R <=0)))
-	stop("'R' must be positive integer")
+	stop("'R' must be a positive integer")
 
 nsteps <- floor(nsteps)
 if((!is.numeric(nsteps)||(nsteps <=0)))
