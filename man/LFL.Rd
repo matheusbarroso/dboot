@@ -32,7 +32,7 @@ bootstrap replicates required. The default value is 100.}
 \item{l.init}{A positive integer smaller then the number
 of observations (n.obs.) in \code{data} (i.e. the length
  of the time series), indicating the size of the subset
- in the \bold{HHJ} algorithm. The default value is
+ in the \bold{LFL} algorithm. The default value is
  'default', in which \eqn{m.init = round(c1*n.obs.^(1/(r+4)))}}
 
 \item{type.optm}{0 for mean of the parameters vector

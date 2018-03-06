@@ -55,7 +55,7 @@
 #'@param l.init A positive integer smaller then the number
 #' of observations (n.obs.) in \code{data} (i.e. the length
 #'  of the time series), indicating the size of the subset
-#'  in the \bold{HHJ} algorithm. The default value is
+#'  in the \bold{LFL} algorithm. The default value is
 #'  'default', in which \eqn{m.init = round(c1*n.obs.^(1/(r+4)))}
 #'
 #'@param type.optm 0 for mean of the parameters vector
@@ -124,9 +124,7 @@
 #'Barroso, Matheus de V. 2018.  BOOTSTRAP METHODS FOR
 #'GENERALIZED AUTOREGRESSIVE MOVING AVERAGE MODELS
 #'
-#'@note This function is not working properly. Wait for an
-#'update.
-#'For bugs and further requests please refer
+#'@note For bugs and further requests please refer
 #' to \url{https://github.com/matheusbarroso/dboot}
 
 
@@ -209,17 +207,19 @@ for (iteration in seq_len(nsteps)) {
 																		}
 	if(l < 1) {
 		l <- 1L
-		print("The ajusted value of l was smaller than one and was replaced by one/n")
+		cat("The ajusted value of l was smaller than one and was replaced by one/n")
 			  }
 
 	estimate.l <- tsboot2(data, statistic = statistic, R = R, l = l,ran.gen = ran.gen,
 						  ran.args = ran.args,allow.parallel = allow.parallel,
 						  seed = seed, packages = packages, export = export,...)
-
+  phi.l <- apply(estimate.l$t,2,mean)
+	
 	estimate.2l <- tsboot2(data, statistic = statistic, R = R, l = 2*l, ran.gen = ran.gen,
 						  ran.args = ran.args,allow.parallel = allow.parallel,
 						  seed = seed, packages = packages, export = export,...)
-
+	phi.2l <- apply(estimate.2l$t,2,mean)
+	
 	print(paste("Finished the boot step",iteration))
 	##step 2
 	endpt <- n - l + 1  ## endpoint
@@ -228,7 +228,7 @@ for (iteration in seq_len(nsteps)) {
 	if(m >= endpt) stop("invalid value of m: m < n-3+1")
 	M <- endpt -m +1
 	K <- 1:R
-	group <- M.collection(m=m,M=M,R=R,blocks=estimate.l$blocks) ## parallelizar
+	group <- dboot:::M.collection(m=m,M=M,R=R,blocks=estimate.l$blocks) ## parallelizar
 
 	block.jab.point.value <- lapply(group, function(k) {
 
@@ -255,21 +255,21 @@ for (iteration in seq_len(nsteps)) {
 
 	block.jab.point.value <-matrix(unlist(block.jab.point.value),ncol=dim(estimate.l$t)[2],byrow=T)
 
-	pseudo <- (matrix(estimate.l$t0,ncol=dim(block.jab.point.value)[2],
+	pseudo <- (matrix(phi.l,ncol=dim(block.jab.point.value)[2],
 	nrow=dim(block.jab.point.value)[1],byrow=T)*endpt-(endpt-m)*block.jab.point.value)/m
 
-	var.jab <- apply(apply(pseudo,1,function(i)(i-estimate.l$t0)^2 ),1,sum)*m/((endpt-m)*M)
+	var.jab <- apply(apply(pseudo,1,function(i)(i-phi.l)^2 ),1,sum)*m/((endpt-m)*M)
 
 	##step 3
 	C1.hat <- n*l^(-r)*var.jab
-	C2.hat <- 2*l*(estimate.l$t0-estimate.2l$t0)
+	C2.hat <- 2*l*(phi.l-phi.2l)
 	l.optm <- (2*C2.hat^2/(r*C1.hat))^(1/(r+2))*n^(1/(r+2))
 	opt.l$l[[iteration+1]] <- l.optm
-	opt.l$l.adj[[iteration+1]] <- l.optm^((r+2)/(r+4))
+	opt.l$l.adj[[iteration+1]] <- (l.optm^((r+2)/(r+4))
 
-	print(paste("Step:",iteration, "completed, more", nsteps-iteration,"to go\n"))
-	print(paste("Initial l is:",l.init,"Estimated length in step",iteration,": original = ",
-		opt.l$l[[iteration+1]],", adjusted = ",opt.l$l.adj[[iteration+1]],"\n"))
+	cat(paste("Step:",iteration, "completed, more", nsteps-iteration,"to go \n"))
+	cat(paste("Initial l is:",l.init,"Estimated length in step",iteration,": original = ",
+		opt.l$l[[iteration+1]],", adjusted = ",opt.l$l.adj[[iteration+1]]," \n"))
 
 }
 return(opt.l)
