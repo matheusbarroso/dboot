@@ -109,8 +109,6 @@ the \code{\link{tsboot2}},a modification of the
 \pkg{boot} package, is used.
 }
 \note{
-This function is not working properly. Wait for an
-update.
 For bugs and further requests please refer
 to \url{https://github.com/matheusbarroso/dboot}
 }

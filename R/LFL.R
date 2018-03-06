@@ -173,6 +173,8 @@ if(allow.parallel)
 	if (foreach::getDoParRegistered()==FALSE)
 		stop("parallel backend must be registered")
 
+`%op%` <- if(foreach::getDoParRegistered()) `%dopar%` else `%do%`	
+
 if(!is.numeric(seed))
 	stop('seed must be numeric')
 
@@ -199,7 +201,7 @@ opt.l$l.adj[[1]] <- l.init
 for (iteration in seq_len(nsteps)) {
 
 	##step 1
-	l <- if(type.optm==0) ceiling(mean(opt.l$l.adj[[iteration]])) else {
+	l <- if((type.optm==0)||(iteration==1)) mean(opt.l$l.adj[[iteration]]) else {
 			if(is.numeric(type.optm)&(type.optm > 0))
 				opt.l$l.adj[[iteration]][type.optm] else
 					stop("'type.optm' must be a positive integer,smaller than or
@@ -230,7 +232,7 @@ for (iteration in seq_len(nsteps)) {
 	K <- 1:R
 	group <- dboot:::M.collection(m=m,M=M,R=R,blocks=estimate.l$blocks) ## parallelizar
 
-	block.jab.point.value <- lapply(group, function(k) {
+	block.jab.point.value <- foreach(k=group)%op% {
 
 		if (is.null(k)) block.jab.point.value <- NULL else {
 
@@ -250,8 +252,8 @@ for (iteration in seq_len(nsteps)) {
 
 					block.jab.point.value <- apply(boot.blocks,1,mean)
 										}
-															}
-														})
+															                          }
+			}
 
 	block.jab.point.value <-matrix(unlist(block.jab.point.value),ncol=dim(estimate.l$t)[2],byrow=T)
 
@@ -264,8 +266,8 @@ for (iteration in seq_len(nsteps)) {
 	C1.hat <- n*l^(-r)*var.jab
 	C2.hat <- 2*l*(phi.l-phi.2l)
 	l.optm <- (2*C2.hat^2/(r*C1.hat))^(1/(r+2))*n^(1/(r+2))
-	opt.l$l[[iteration+1]] <- l.optm
-	opt.l$l.adj[[iteration+1]] <- (l.optm^((r+2)/(r+4))
+	opt.l$l[[iteration+1]] <- ceiling(l.optm)
+	opt.l$l.adj[[iteration+1]] <- ceiling(l.optm^((r+2)/(r+4)))
 
 	cat(paste("Step:",iteration, "completed, more", nsteps-iteration,"to go \n"))
 	cat(paste("Initial l is:",l.init,"Estimated length in step",iteration,": original = ",
